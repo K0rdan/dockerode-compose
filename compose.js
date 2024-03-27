@@ -59,14 +59,18 @@ class Compose {
     }
   }
 
-  async pull(serviceN, options) {
+  async pull(serviceN, options, callback, auth) {
     options = options || {};
     var streams = [];
     var serviceNames = (serviceN === undefined || serviceN === null) ? tools.sortServices(this.recipe) : [serviceN];
     for (var serviceName of serviceNames) {
       var service = this.recipe.services[serviceName];
       try {
-        var streami = await this.docker.pull(service.image);
+        var dockerPullOptions = Object.assign({}, options);
+        delete dockerPullOptions.verbose;
+        delete dockerPullOptions.streams;
+        var dockerPullArgs = [service.image, dockerPullOptions, callback, auth];
+        var streami = await this.docker.pull(...dockerPullArgs);
         streams.push(streami);
 
         if (options.verbose === true) {
